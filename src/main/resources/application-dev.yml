@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/bankdb
+    username: root
+    password: Sandworm20**
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
