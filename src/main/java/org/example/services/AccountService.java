@@ -9,6 +9,7 @@ import org.example.utils.AccountMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,5 +38,27 @@ public class AccountService {
                     item.getBalance()));
         });
         return items;
+    }
+
+    public void updateAccount(Long id, PostNewAccount updatedAccount) throws AccountDuplicationException, AccountNotFoundException {
+        Account account = accountRepository.findById(updatedAccount.getId())
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        if (!account.getAccount_id().equals(updatedAccount.getId()) &&
+                accountRepository.existsById(updatedAccount.getId())) {
+            throw new AccountDuplicationException("Account already exists");
+        }
+
+        // Map updates (using mapper or manually)
+        account.setBalance(updatedAccount.getBalance());
+
+        accountRepository.save(account);
+    }
+
+    public void deleteAccount(Long id) throws AccountNotFoundException {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        accountRepository.delete(account);
     }
 }

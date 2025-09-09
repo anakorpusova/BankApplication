@@ -8,6 +8,7 @@ import org.example.services.AccountService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.util.List;
 
 @RestController
@@ -17,14 +18,28 @@ public class AccountController {
     private final AccountService accountService;
 
     @GetMapping(value = {"/"})
-    public ResponseEntity<List<AccountItem>> getStoreIndex() {
+    public ResponseEntity<List<AccountItem>> getAccountIndex() {
         List<AccountItem> items = accountService.getAllAccounts();
         return ResponseEntity.ok(items);
     }
 
     @PostMapping(value = {"/add", "/add/"})
-    public ResponseEntity<Void> getStoreAddProduct(@RequestBody PostNewAccount account) throws AccountDuplicationException {
+    public ResponseEntity<Void> getAddAccount(@RequestBody PostNewAccount account) throws AccountDuplicationException {
         accountService.createAccount(account);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Void> updateAccount(
+            @PathVariable Long id,
+            @RequestBody PostNewAccount updatedAccount) throws AccountNotFoundException, AccountDuplicationException {
+        accountService.updateAccount(id, updatedAccount);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Void> deleteAccount(@PathVariable Long id) throws AccountNotFoundException {
+        accountService.deleteAccount(id);
         return ResponseEntity.noContent().build();
     }
 }
