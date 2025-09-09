@@ -1,7 +1,5 @@
 package org.example.services;
 
-import org.example.dtos.AccountItem;
-import org.example.dtos.PostNewAccount;
 import org.example.dtos.PostNewCheckingAccount;
 import org.example.dtos.PostNewSavingsAccount;
 import org.example.entities.Account;
@@ -14,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.security.auth.login.AccountNotFoundException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -51,25 +48,46 @@ public class AccountService {
         return accountRepository.findById(id).orElse(null);
     }
 
-    public void updateAccount(Long id, PostNewAccount updatedAccount) throws AccountDuplicationException, AccountNotFoundException {
-        Account account = accountRepository.findById(updatedAccount.getId())
-                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+    public Account updateAccount(Long id, Account updatedAccount) {
+        return accountRepository.findById(id)
+                .map(existing -> {
+                    // update common fields
+                    existing.setBalance(updatedAccount.getBalance());
 
-        if (!account.getAccount_id().equals(updatedAccount.getId()) &&
-                accountRepository.existsById(updatedAccount.getId())) {
-            throw new AccountDuplicationException("Account already exists");
-        }
+                    // update subclass-specific fields
+                    if (existing instanceof CheckingAccount checking &&
+                            updatedAccount instanceof CheckingAccount newChecking) {
+                        checking.setOverdraft_limit(newChecking.getOverdraft_limit());
+                    } else if (existing instanceof SavingsAccount savings &&
+                            updatedAccount instanceof SavingsAccount newSavings) {
+                        savings.setInterest_rate(newSavings.getInterest_rate());
+                    }
 
-        // Map updates (using mapper or manually)
-        account.setBalance(updatedAccount.getBalance());
-
-        accountRepository.save(account);
+                    return accountRepository.save(existing);
+                })
+                .orElseThrow(() -> new RuntimeException("Account not found"));
     }
 
-    public void deleteAccount(Long id) throws AccountNotFoundException {
-        Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+    public CheckingAccount updateCheckingAccount(Long id, PostNewCheckingAccount dto) throws AccountDuplicationException, AccountNotFoundException {
+        CheckingAccount existing = (CheckingAccount) accountRepository.findById(id)
+                .orElseThrow(() -> new org.example.exceptions.AccountNotFoundException("Checking account not found"));
+        existing.setOverdraft_limit(dto.getOverdraftLimit());
+        existing.setDebit_card_linked(dto.isDebit_card_linked());
+        return accountRepository.save(existing);
+    }
 
-        accountRepository.delete(account);
+    public SavingsAccount updateSavingsAccount(Long id, PostNewSavingsAccount dto) throws AccountNotFoundException {
+        SavingsAccount existing = (SavingsAccount) accountRepository.findById(id)
+                .orElseThrow(() -> new AccountNotFoundException("Savings account not found"));
+        existing.setInterest_rate(dto.getInterest_rate());
+
+        return accountRepository.save(existing);
+    }
+
+    public void deleteAccount(Long id) throws AccountNotFoundException{
+        if(!accountRepository.existsById(id)){
+            throw new AccountNotFoundException("Account not found");
+        }
+        accountRepository.deleteById(id);
     }
 }

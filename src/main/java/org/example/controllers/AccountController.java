@@ -42,12 +42,19 @@ public class AccountController {
             return  accountService.createSavingsAccount(dto);
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Void> updateAccount(
-            @PathVariable Long id,
-            @RequestBody PostNewAccount updatedAccount) throws AccountNotFoundException, AccountDuplicationException {
-        accountService.updateAccount(id, updatedAccount);
-        return ResponseEntity.noContent().build();
+    @PutMapping("/{id}")
+    public Account updateAccount(@PathVariable Long id, @RequestBody Account dto) {
+        return accountService.updateAccount(id, dto);
+    }
+
+    @PutMapping("/checking/{id}")
+    public CheckingAccount updateChecking(@PathVariable Long id, @RequestBody PostNewCheckingAccount dto) throws AccountNotFoundException, AccountDuplicationException {
+        return accountService.updateCheckingAccount(id, dto);
+    }
+
+    @PutMapping("/savings/{id}")
+    public SavingsAccount updateSavings(@PathVariable Long id, @RequestBody PostNewSavingsAccount dto) throws AccountNotFoundException {
+        return accountService.updateSavingsAccount(id, dto);
     }
 
     @DeleteMapping("/delete/{id}")
