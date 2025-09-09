@@ -1,10 +1,13 @@
 package org.example.entities;
 
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.*;
 
 @EqualsAndHashCode(callSuper = true)
+@DiscriminatorValue("CHECKING")
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor

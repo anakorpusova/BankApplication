@@ -2,7 +2,11 @@ package org.example.services;
 
 import org.example.dtos.AccountItem;
 import org.example.dtos.PostNewAccount;
+import org.example.dtos.PostNewCheckingAccount;
+import org.example.dtos.PostNewSavingsAccount;
 import org.example.entities.Account;
+import org.example.entities.CheckingAccount;
+import org.example.entities.SavingsAccount;
 import org.example.exceptions.AccountDuplicationException;
 import org.example.repositories.AccountRepository;
 import org.example.utils.AccountMapper;
@@ -21,23 +25,30 @@ public class AccountService {
     @Autowired
     private AccountMapper accountMapper;
 
-    public void createAccount (PostNewAccount account) throws AccountDuplicationException {
-        if (accountRepository.existsById(account.getId())){
-            throw new AccountDuplicationException(("Account already exists"));
-        }
-        Account newAccount = accountMapper.postNewAccount(account);
-        accountRepository.save(newAccount);
+    public CheckingAccount createCheckingAccount (PostNewCheckingAccount dto) throws AccountDuplicationException {
+        CheckingAccount account = new CheckingAccount();
+        account.setAccount_type("CHECKING");
+        account.setBalance(0);
+        account.setOverdraft_limit(dto.getOverdraftLimit());
+        account.setDebit_card_linked(dto.isDebit_card_linked());
+        return accountRepository.save(account);
+
     }
 
-    public List<AccountItem> getAllAccounts() {
-        List<AccountItem> items = new ArrayList<>();
-        accountRepository.findAll().forEach(item ->{
-            items.add(new AccountItem(
-                    Math.toIntExact(item.getAccount_id()),
-                    item.getAccount_type(),
-                    item.getBalance()));
-        });
-        return items;
+    public SavingsAccount createSavingsAccount (PostNewSavingsAccount dto){
+        SavingsAccount account = new SavingsAccount();
+        account.setAccount_type("SAVINGS");
+        account.setBalance(0);
+        account.setInterest_rate(dto.getInterest_rate());
+        return accountRepository.save(account);
+    }
+
+    public List<Account> getAllAccounts() {
+        return accountRepository.findAll();
+    }
+
+    public Account getAccountById(Long id){
+        return accountRepository.findById(id).orElse(null);
     }
 
     public void updateAccount(Long id, PostNewAccount updatedAccount) throws AccountDuplicationException, AccountNotFoundException {

@@ -3,6 +3,11 @@ package org.example.controllers;
 import lombok.AllArgsConstructor;
 import org.example.dtos.AccountItem;
 import org.example.dtos.PostNewAccount;
+import org.example.dtos.PostNewCheckingAccount;
+import org.example.dtos.PostNewSavingsAccount;
+import org.example.entities.Account;
+import org.example.entities.CheckingAccount;
+import org.example.entities.SavingsAccount;
 import org.example.exceptions.AccountDuplicationException;
 import org.example.services.AccountService;
 import org.springframework.http.ResponseEntity;
@@ -18,15 +23,23 @@ public class AccountController {
     private final AccountService accountService;
 
     @GetMapping(value = {"/"})
-    public ResponseEntity<List<AccountItem>> getAccountIndex() {
-        List<AccountItem> items = accountService.getAllAccounts();
-        return ResponseEntity.ok(items);
+        public List<Account> getAllAccounts(){
+        return accountService.getAllAccounts();
+        }
+
+    @GetMapping(value = {"/{id}"})
+        public Account getAccount(@PathVariable Long id){
+            return accountService.getAccountById(id);
     }
 
-    @PostMapping(value = {"/add", "/add/"})
-    public ResponseEntity<Void> getAddAccount(@RequestBody PostNewAccount account) throws AccountDuplicationException {
-        accountService.createAccount(account);
-        return ResponseEntity.noContent().build();
+    @PostMapping(value = {"/checking"})
+        public CheckingAccount createChecking(@RequestBody PostNewCheckingAccount dto) throws AccountDuplicationException {
+            return accountService.createCheckingAccount(dto);
+        }
+
+    @PostMapping(value = {"/savings"})
+        public SavingsAccount createSavings(@RequestBody PostNewSavingsAccount dto){
+            return  accountService.createSavingsAccount(dto);
     }
 
     @PutMapping("/update/{id}")
